@@ -223,6 +223,24 @@ end
 </table>
 ```
 
+## Concern-by-Concern: Why Next.js Has More Files
+
+Same concepts, split differently. Phoenix feels "cleaner" because the framework provides more built-in.
+
+| Concern | Phoenix | Next.js | Why the difference |
+|---|---|---|---|
+| List page | `index.ex` + `index.html.heex` | `page.tsx` (1 file) | Next.js merges backend + template |
+| Show page | `show.ex` + `show.html.heex` | `[id]/page.tsx` (1 file) | Same |
+| New page | `new.ex` + `new.html.heex` | `new/page.tsx` (1 file) | Same |
+| Edit page | `edit.ex` + `edit.html.heex` | `[id]/edit/page.tsx` (1 file) | Same |
+| Form component | `form_component.ex` | `product-form.tsx` | Direct equivalent |
+| Schema/types | `product.ex` | `types.ts` | Direct equivalent |
+| Context/logic | `products.ex` | `store.ts` | Direct equivalent |
+| Validations | Inside `product.ex` changeset | `validate.ts` (separate file) | No changeset equivalent — must split out |
+| Actions/events | Inside each LiveView `handle_event` | `actions.ts` (separate file) | `"use server"` needs own module boundary |
+| Flash messages | Built into Phoenix | `flash.tsx` (manual) | Not provided by Next.js |
+| Delete confirm | Built-in / JS hook | `delete-button.tsx` (manual) | Not provided by Next.js |
+
 ## Key Concept Mapping
 
 | Concept | Next.js | Phoenix |
