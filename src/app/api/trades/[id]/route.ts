@@ -1,0 +1,95 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireSession } from "@/lib/auth-server";
+import { db } from "@/lib/db";
+import { tradePost, cosmoAccount } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+
+// GET /api/trades/[id] — get single trade with full details
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const tradeId = Number(id);
+
+  const trade = await db.query.tradePost.findFirst({
+    where: eq(tradePost.id, tradeId),
+    with: {
+      haves: true,
+      wants: true,
+      user: {
+        columns: { id: true, name: true, image: true },
+      },
+    },
+  });
+
+  if (!trade) {
+    return NextResponse.json({ error: "Trade not found" }, { status: 404 });
+  }
+
+  // Get cosmo nickname
+  const cosmo = await db.query.cosmoAccount.findFirst({
+    where: eq(cosmoAccount.userId, trade.userId),
+  });
+
+  return NextResponse.json({
+    ...trade,
+    cosmoNickname: cosmo?.nickname ?? null,
+  });
+}
+
+// PATCH /api/trades/[id] — update trade status (close)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  let session;
+  try {
+    session = await requireSession();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const tradeId = Number(id);
+  const body = await request.json();
+
+  const [updated] = await db
+    .update(tradePost)
+    .set({ status: body.status, updatedAt: new Date() })
+    .where(and(eq(tradePost.id, tradeId), eq(tradePost.userId, session.user.id)))
+    .returning();
+
+  if (!updated) {
+    return NextResponse.json({ error: "Trade not found or not yours" }, { status: 404 });
+  }
+
+  return NextResponse.json(updated);
+}
+
+// DELETE /api/trades/[id] — delete own trade
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  let session;
+  try {
+    session = await requireSession();
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const tradeId = Number(id);
+
+  const [deleted] = await db
+    .delete(tradePost)
+    .where(and(eq(tradePost.id, tradeId), eq(tradePost.userId, session.user.id)))
+    .returning();
+
+  if (!deleted) {
+    return NextResponse.json({ error: "Trade not found or not yours" }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true });
+}

@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["@better-auth/drizzle-adapter"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.cosmo.fans",
+      },
+      {
+        protocol: "https",
+        hostname: "imagedelivery.net",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
