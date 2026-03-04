@@ -1,3 +1,9 @@
+// =============================================================================
+// Edit Item Page — Phoenix: :edit action + edit.html.heex
+// =============================================================================
+// Loads the existing item, passes it to ItemForm for editing.
+// =============================================================================
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ItemForm } from "../../_components/item-form";

@@ -1,9 +1,18 @@
+// =============================================================================
+// actions.ts — Product server actions (like Phoenix controller actions)
+// =============================================================================
+// Same pattern as items/actions.ts — see comments there for details.
+// createProduct → ProductController.create/2
+// updateProduct → ProductController.update/2
+// deleteProduct → ProductController.delete/2
+// =============================================================================
+
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { ActionState } from "./types";
+import { redirect } from "next/navigation";
 import * as store from "./store";
+import type { ActionState } from "./types";
 import { validateProduct } from "./validate";
 
 export async function createProduct(
@@ -15,7 +24,11 @@ export async function createProduct(
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      values: { name: data.name, description: data.description, status: data.status },
+      values: {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+      },
     };
   }
 
@@ -34,7 +47,11 @@ export async function updateProduct(
   if (Object.keys(errors).length > 0) {
     return {
       errors,
-      values: { name: data.name, description: data.description, status: data.status },
+      values: {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+      },
     };
   }
 

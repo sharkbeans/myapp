@@ -1,3 +1,7 @@
+// =============================================================================
+// delete-button.tsx — Delete with confirmation (like data-confirm in Phoenix)
+// =============================================================================
+
 "use client";
 
 import { deleteProduct } from "../_lib/actions";

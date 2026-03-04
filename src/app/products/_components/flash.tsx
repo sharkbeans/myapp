@@ -1,11 +1,14 @@
+// =============================================================================
+// flash.tsx — Flash message banner (generic, same as items/flash.tsx)
+// =============================================================================
+
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Flash() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const message = searchParams.get("flash");
   const [visible, setVisible] = useState(false);
 

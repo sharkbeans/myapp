@@ -1,3 +1,9 @@
+// =============================================================================
+// validate.ts — Product validation (like changeset validations in Phoenix)
+// =============================================================================
+// Same pattern as items/validate.ts — see comments there for details.
+// =============================================================================
+
 import type { FieldErrors } from "./types";
 
 const VALID_STATUSES = ["active", "inactive"] as const;

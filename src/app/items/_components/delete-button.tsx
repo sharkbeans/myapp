@@ -1,3 +1,9 @@
+// =============================================================================
+// delete-button.tsx — Delete with confirmation (like data-confirm in Phoenix)
+// =============================================================================
+// WHEN SCAFFOLDING: Just change the import from deleteItem to deleteYourResource.
+// =============================================================================
+
 "use client";
 
 import { deleteItem } from "../_lib/actions";

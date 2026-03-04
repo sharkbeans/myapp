@@ -1,3 +1,7 @@
+// =============================================================================
+// Edit Product Page — Phoenix: :edit action + edit.html.heex
+// =============================================================================
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductForm } from "../../_components/product-form";
@@ -25,7 +29,11 @@ export default async function EditProductPage({
         <h1 className="mt-2 text-2xl font-bold">Edit Product</h1>
       </div>
 
-      <ProductForm action={updateProduct} product={product} submitLabel="Save Changes" />
+      <ProductForm
+        action={updateProduct}
+        product={product}
+        submitLabel="Save Changes"
+      />
     </main>
   );
 }

@@ -1,3 +1,7 @@
+// =============================================================================
+// Show Product Page — Phoenix: :show action + show.html.heex
+// =============================================================================
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteButton } from "../_components/delete-button";
@@ -30,11 +34,15 @@ export default async function ShowProductPage({
           <dd className="mt-1">{product.name}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-500 dark:text-gray-400">Description</dt>
+          <dt className="font-medium text-gray-500 dark:text-gray-400">
+            Description
+          </dt>
           <dd className="mt-1">{product.description || "—"}</dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-500 dark:text-gray-400">Status</dt>
+          <dt className="font-medium text-gray-500 dark:text-gray-400">
+            Status
+          </dt>
           <dd className="mt-1">
             <span
               className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -48,8 +56,12 @@ export default async function ShowProductPage({
           </dd>
         </div>
         <div>
-          <dt className="font-medium text-gray-500 dark:text-gray-400">Created</dt>
-          <dd className="mt-1">{new Date(product.createdAt).toLocaleString()}</dd>
+          <dt className="font-medium text-gray-500 dark:text-gray-400">
+            Created
+          </dt>
+          <dd className="mt-1">
+            {new Date(product.createdAt).toLocaleString()}
+          </dd>
         </div>
       </dl>
 

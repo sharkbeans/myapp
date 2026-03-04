@@ -1,3 +1,10 @@
+// =============================================================================
+// product-form.tsx — Shared form component (like Phoenix's form_component.ex)
+// =============================================================================
+// Used by BOTH new/page.tsx and [id]/edit/page.tsx.
+// Same pattern as items/item-form.tsx — see comments there for details.
+// =============================================================================
+
 "use client";
 
 import { useActionState } from "react";

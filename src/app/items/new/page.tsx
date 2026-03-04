@@ -1,3 +1,9 @@
+// =============================================================================
+// New Item Page — Phoenix: :new action + new.html.heex
+// =============================================================================
+// Renders the create form. The ItemForm component handles the submit cycle.
+// =============================================================================
+
 import Link from "next/link";
 import { ItemForm } from "../_components/item-form";
 import { createItem } from "../_lib/actions";

@@ -1,3 +1,7 @@
+// =============================================================================
+// New Product Page — Phoenix: :new action + new.html.heex
+// =============================================================================
+
 import Link from "next/link";
 import { ProductForm } from "../_components/product-form";
 import { createProduct } from "../_lib/actions";

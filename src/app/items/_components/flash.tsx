@@ -1,11 +1,18 @@
+// =============================================================================
+// flash.tsx — Flash message banner (like Phoenix's put_flash/get_flash)
+// =============================================================================
+// Reads ?flash= from URL, shows green banner, auto-dismisses after 4s.
+// This component is GENERIC — copy as-is for any new resource.
+// Wrap in <Suspense> because useSearchParams needs it.
+// =============================================================================
+
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Flash() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const message = searchParams.get("flash");
   const [visible, setVisible] = useState(false);
 

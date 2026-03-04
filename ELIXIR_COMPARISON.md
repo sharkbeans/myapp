@@ -4,13 +4,13 @@ A side-by-side guide for someone coming from this Next.js stack.
 
 ## Quick Command Equivalents
 
-| Next.js | Phoenix |
-|---------|---------|
-| `npx create-next-app` | `mix phx.new myapp` |
-| `npm run dev` | `mix phx.server` |
-| `npm run build` | `mix compile` |
-| `npm install <pkg>` | Add to `mix.exs` deps, then `mix deps.get` |
-| `npx next build && npx next start` | `MIX_ENV=prod mix release` |
+| Next.js                              | Phoenix                                        |
+| ------------------------------------ | ---------------------------------------------- |
+| `npx create-next-app`              | `mix phx.new myapp`                          |
+| `npm run dev`                      | `mix phx.server`                             |
+| `npm run build`                    | `mix compile`                                |
+| `npm install <pkg>`                | Add to `mix.exs` deps, then `mix deps.get` |
+| `npx next build && npx next start` | `MIX_ENV=prod mix release`                   |
 
 ## Project Structure
 
@@ -42,19 +42,20 @@ src/app/items/                       lib/myapp_web/
 
 ## File Type Mapping
 
-| Next.js | Phoenix | What it does |
-|---------|---------|-------------|
-| `.tsx` / `.jsx` | `.ex` | Backend logic (controllers, schemas, contexts) |
-| `.tsx` (JSX markup) | `.html.heex` | Templates / HTML with embedded code |
-| TypeScript types | Ecto schema + changeset | Data shape & validation |
-| Server Actions (`"use server"`) | Controller actions | Handle form submissions |
-| `layout.tsx` | `app.html.heex` | Root wrapper layout |
-| `page.tsx` | `index.html.heex` + controller | A routable page |
-| CSS / Tailwind | CSS / Tailwind | Same — Phoenix ships with Tailwind too |
+| Next.js                           | Phoenix                          | What it does                                   |
+| --------------------------------- | -------------------------------- | ---------------------------------------------- |
+| `.tsx` / `.jsx`               | `.ex`                          | Backend logic (controllers, schemas, contexts) |
+| `.tsx` (JSX markup)             | `.html.heex`                   | Templates / HTML with embedded code            |
+| TypeScript types                  | Ecto schema + changeset          | Data shape & validation                        |
+| Server Actions (`"use server"`) | Controller actions               | Handle form submissions                        |
+| `layout.tsx`                    | `app.html.heex`                | Root wrapper layout                            |
+| `page.tsx`                      | `index.html.heex` + controller | A routable page                                |
+| CSS / Tailwind                    | CSS / Tailwind                   | Same — Phoenix ships with Tailwind too        |
 
 ## Routing
 
 **Next.js** — file-based (folder = route):
+
 ```
 src/app/items/page.tsx           → GET /items
 src/app/items/create/page.tsx    → GET /items/create
@@ -62,6 +63,7 @@ src/app/items/[id]/edit/page.tsx → GET /items/:id/edit
 ```
 
 **Phoenix** — explicit in `router.ex`:
+
 ```elixir
 # lib/myapp_web/router.ex
 scope "/", MyappWeb do
@@ -74,21 +76,22 @@ end
 
 `resources "/items"` generates these routes automatically:
 
-| HTTP Method | Path | Controller Action | Next.js Equivalent |
-|-------------|------|-------------------|-------------------|
-| GET | `/items` | `:index` | `app/items/page.tsx` |
-| GET | `/items/new` | `:new` | `app/items/create/page.tsx` |
-| POST | `/items` | `:create` | Server Action `createItem()` |
-| GET | `/items/:id` | `:show` | `app/items/[id]/page.tsx` |
-| GET | `/items/:id/edit` | `:edit` | `app/items/[id]/edit/page.tsx` |
-| PATCH/PUT | `/items/:id` | `:update` | Server Action `updateItem()` |
-| DELETE | `/items/:id` | `:delete` | Server Action `deleteItem()` |
+| HTTP Method | Path                | Controller Action | Next.js Equivalent               |
+| ----------- | ------------------- | ----------------- | -------------------------------- |
+| GET         | `/items`          | `:index`        | `app/items/page.tsx`           |
+| GET         | `/items/new`      | `:new`          | `app/items/create/page.tsx`    |
+| POST        | `/items`          | `:create`       | Server Action `createItem()`   |
+| GET         | `/items/:id`      | `:show`         | `app/items/[id]/page.tsx`      |
+| GET         | `/items/:id/edit` | `:edit`         | `app/items/[id]/edit/page.tsx` |
+| PATCH/PUT   | `/items/:id`      | `:update`       | Server Action `updateItem()`   |
+| DELETE      | `/items/:id`      | `:delete`       | Server Action `deleteItem()`   |
 
 ## CRUD Side-by-Side
 
 ### Data Schema / Types
 
 **Next.js** (`types.ts`):
+
 ```typescript
 export type Item = {
   id: string;
@@ -100,6 +103,7 @@ export type Item = {
 ```
 
 **Phoenix** (`lib/myapp/item.ex`):
+
 ```elixir
 defmodule Myapp.Item do
   use Ecto.Schema
@@ -123,12 +127,14 @@ end
 ### Data Access / Store
 
 **Next.js** (`store.ts` / would be Prisma/Drizzle):
+
 ```typescript
 export function getAll(): Item[] { ... }
 export function create(data): Item { ... }
 ```
 
 **Phoenix** (`lib/myapp/items.ex` — called a "context"):
+
 ```elixir
 defmodule Myapp.Items do
   alias Myapp.Repo
@@ -145,6 +151,7 @@ end
 ### Server Actions → Controller Actions
 
 **Next.js** (`actions.ts`):
+
 ```typescript
 "use server";
 export async function createItem(formData: FormData) {
@@ -154,6 +161,7 @@ export async function createItem(formData: FormData) {
 ```
 
 **Phoenix** (`item_controller.ex`):
+
 ```elixir
 defmodule MyappWeb.ItemController do
   use MyappWeb, :controller
@@ -195,6 +203,7 @@ end
 ### Templates (JSX → HEEx)
 
 **Next.js** (JSX in `.tsx`):
+
 ```tsx
 <table>
   {items.map((item) => (
@@ -207,6 +216,7 @@ end
 ```
 
 **Phoenix** (`index.html.heex`):
+
 ```heex
 <table>
   <tr :for={item <- @items}>
@@ -227,34 +237,34 @@ end
 
 Same concepts, split differently. Phoenix feels "cleaner" because the framework provides more built-in.
 
-| Concern | Phoenix | Next.js | Why the difference |
-|---|---|---|---|
-| List page | `index.ex` + `index.html.heex` | `page.tsx` (1 file) | Next.js merges backend + template |
-| Show page | `show.ex` + `show.html.heex` | `[id]/page.tsx` (1 file) | Same |
-| New page | `new.ex` + `new.html.heex` | `new/page.tsx` (1 file) | Same |
-| Edit page | `edit.ex` + `edit.html.heex` | `[id]/edit/page.tsx` (1 file) | Same |
-| Form component | `form_component.ex` | `product-form.tsx` | Direct equivalent |
-| Schema/types | `product.ex` | `types.ts` | Direct equivalent |
-| Context/logic | `products.ex` | `store.ts` | Direct equivalent |
-| Validations | Inside `product.ex` changeset | `validate.ts` (separate file) | No changeset equivalent — must split out |
-| Actions/events | Inside each LiveView `handle_event` | `actions.ts` (separate file) | `"use server"` needs own module boundary |
-| Flash messages | Built into Phoenix | `flash.tsx` (manual) | Not provided by Next.js |
-| Delete confirm | Built-in / JS hook | `delete-button.tsx` (manual) | Not provided by Next.js |
+| Concern        | Phoenix                               | Next.js                         | Why the difference                         |
+| -------------- | ------------------------------------- | ------------------------------- | ------------------------------------------ |
+| Index page     | `index.ex` + `index.html.heex`    | `page.tsx` (1 file)           | Next.js merges backend + template          |
+| Show page      | `show.ex` + `show.html.heex`      | `[id]/page.tsx` (1 file)      | Same                                       |
+| New page       | `new.ex` + `new.html.heex`        | `new/page.tsx` (1 file)       | Same                                       |
+| Edit page      | `edit.ex` + `edit.html.heex`      | `[id]/edit/page.tsx` (1 file) | Same                                       |
+| Form component | `form_component.ex`                 | `product-form.tsx`            | Direct equivalent                          |
+| Schema/types   | `product.ex`                        | `types.ts`                    | Direct equivalent                          |
+| Context/logic  | `products.ex`                       | `store.ts`                    | Direct equivalent                          |
+| Validations    | Inside `product.ex` changeset       | `validate.ts` (separate file) | No changeset equivalent — must split out  |
+| Actions/events | Inside each LiveView `handle_event` | `actions.ts` (separate file)  | `"use server"` needs own module boundary |
+| Flash messages | Built into Phoenix                    | `flash.tsx` (manual)          | Not provided by Next.js                    |
+| Delete confirm | Built-in / JS hook                    | `delete-button.tsx` (manual)  | Not provided by Next.js                    |
 
 ## Key Concept Mapping
 
-| Concept | Next.js | Phoenix |
-|---------|---------|---------|
-| Language | TypeScript | Elixir |
-| Runtime | Node.js (V8) | BEAM VM (Erlang VM) |
-| Package manager | npm / pnpm | mix + hex |
-| ORM | Prisma / Drizzle | Ecto |
-| Validation | Zod (manual) | Ecto Changeset (built-in) |
-| Templating | JSX (in same file) | HEEx (separate `.html.heex` files) |
-| Reactivity / Live UI | React (client JS) | LiveView (server-driven, no JS needed) |
-| CSS | Tailwind | Tailwind (ships by default) |
-| Auth | NextAuth / Auth.js | `mix phx.gen.auth` (built-in generator) |
-| Deployment | Vercel / Docker | Fly.io / Docker / bare release |
+| Concept              | Next.js            | Phoenix                                   |
+| -------------------- | ------------------ | ----------------------------------------- |
+| Language             | TypeScript         | Elixir                                    |
+| Runtime              | Node.js (V8)       | BEAM VM (Erlang VM)                       |
+| Package manager      | npm / pnpm         | mix + hex                                 |
+| ORM                  | Prisma / Drizzle   | Ecto                                      |
+| Validation           | Zod (manual)       | Ecto Changeset (built-in)                 |
+| Templating           | JSX (in same file) | HEEx (separate `.html.heex` files)      |
+| Reactivity / Live UI | React (client JS)  | LiveView (server-driven, no JS needed)    |
+| CSS                  | Tailwind           | Tailwind (ships by default)               |
+| Auth                 | NextAuth / Auth.js | `mix phx.gen.auth` (built-in generator) |
+| Deployment           | Vercel / Docker    | Fly.io / Docker / bare release            |
 
 ## The Big Difference: LiveView
 
