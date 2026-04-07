@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyApp CRUD Template
 
-## Getting Started
+`myapp` is a lightweight Next.js CRUD template meant to be cloned and adapted into your own app. It includes two example resources, shared table/search/sort/pagination building blocks, and copy-paste-friendly resource scaffolding under [`src/app`](/home/jytan/Documents/Git/myapp/src/app).
 
-First, run the development server:
+## What's Included
+
+- Next.js App Router with TypeScript
+- Tailwind CSS 4
+- Biome for linting and formatting
+- Example CRUD resources at `/items` and `/products`
+- Search, sorting, pagination, and per-page controls
+- Server actions for create, update, and delete flows
+- In-memory stores you can swap with Prisma, Drizzle, Supabase, or your own backend
+- Neon-ready database mode via `DATABASE_URL`, with automatic table creation and seed data for the example resources
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+corepack npm install
+corepack npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Template Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The reusable CRUD pattern lives here:
 
-## Learn More
+```text
+src/app/items/
+src/app/products/
+src/app/_components/
+src/app/_lib/
+```
 
-To learn more about Next.js, take a look at the following resources:
+To scaffold a new resource, copy either `src/app/items` or `src/app/products`,
+rename the folder, then update the type, validation, store, form fields, links,
+and labels for your own model.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Neon-Ready Mode
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If `DATABASE_URL` is set, the `/items` and `/products` examples use Neon instead of the in-memory fallback. On first request, the template automatically:
 
-## Deploy on Vercel
+- creates the `items` table if missing
+- creates the `products` table if missing
+- seeds both tables with the example starter records when empty
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+That means a cloned repo only needs valid Neon environment values to start persisting data.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Env Setup
+
+For local development, create `.env.local` and fill in your real values:
+
+```dotenv
+APP_ENV=development
+NEXT_PUBLIC_APP_NAME=My Local CRUD App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+SESSION_SECRET=replace-with-a-long-random-secret
+CRON_SECRET=replace-with-another-long-random-secret
+DATABASE_URL=postgresql://NEON_USER:NEON_PASSWORD@NEON_POOLED_HOST/NEON_DATABASE?sslmode=require
+DIRECT_DATABASE_URL=postgresql://NEON_USER:NEON_PASSWORD@NEON_DIRECT_HOST/NEON_DATABASE?sslmode=require
+```
+
+For Vercel, add the same keys in Project Settings -> Environment Variables,
+using your production URL for `NEXT_PUBLIC_APP_URL`.
+
+Neon mapping:
+- pooled connection string -> `DATABASE_URL`
+- direct connection string -> `DIRECT_DATABASE_URL`
+- database host/name/user/password -> optional split `DATABASE_*` vars if needed
+
+## Scripts
+
+```bash
+corepack npm run dev
+corepack npm run lint
+corepack npm run format
+corepack npm run build
+```
+
+## Security Note
+
+As of April 7, 2026, this template does not include `axios` as a direct or transitive dependency, and `npm audit` reports `0` vulnerabilities after the dependency refresh.

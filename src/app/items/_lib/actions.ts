@@ -39,7 +39,7 @@ export async function createItem(
     };
   }
 
-  store.create(data);
+  await store.create(data);
   revalidatePath("/items");
   redirect("/items?flash=Item+created+successfully");
 }
@@ -62,13 +62,13 @@ export async function updateItem(
     };
   }
 
-  store.update(id, data);
+  await store.update(id, data);
   revalidatePath("/items");
   redirect("/items?flash=Item+updated+successfully");
 }
 
 export async function deleteItem(id: string): Promise<void> {
-  store.remove(id);
+  await store.remove(id);
   revalidatePath("/items");
   redirect("/items?flash=Item+deleted+successfully");
 }

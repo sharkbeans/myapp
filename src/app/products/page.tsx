@@ -31,15 +31,13 @@ import { DeleteButton } from "./_components/delete-button";
 import { Flash } from "./_components/flash";
 // --- Shared logic (the "backend" pipeline) -----------------------------------
 import { getAll } from "./_lib/store";
+import type { Product } from "./_lib/types";
 
 // --- Sortable fields for this resource ---------------------------------------
 const SORTABLE_FIELDS = ["name", "description", "status", "createdAt"];
 
 // --- Searchable fields for this resource -------------------------------------
-const SEARCHABLE_FIELDS: (keyof ReturnType<typeof getAll>[number])[] = [
-  "name",
-  "description",
-];
+const SEARCHABLE_FIELDS: (keyof Product)[] = ["name", "description"];
 
 export default async function ProductsPage({
   searchParams,
@@ -49,7 +47,7 @@ export default async function ProductsPage({
   const params = await searchParams;
 
   // --- 1. Get all products from the store ------------------------------------
-  const allProducts = getAll();
+  const allProducts = await getAll();
 
   // --- 2. Filter by search query ---------------------------------------------
   const query = parseSearchParam(params);

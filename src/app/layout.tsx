@@ -12,23 +12,13 @@
 // =============================================================================
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Topbar } from "./_components/topbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "MyApp",
-  description: "Next.js CRUD scaffold — like mix phx.gen.html",
+  title: "MyApp CRUD Template",
+  description:
+    "Cloneable Next.js CRUD scaffold with items and products examples",
 };
 
 export default function RootLayout({
@@ -38,9 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         {/* Topbar appears on every page — like the nav in app.html.heex */}
         <Topbar />
         {children}

@@ -15,7 +15,7 @@ export default async function ShowItemPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = getById(id);
+  const item = await getById(id);
   if (!item) notFound();
 
   return (

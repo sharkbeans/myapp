@@ -31,6 +31,7 @@ import { DeleteButton } from "./_components/delete-button";
 import { Flash } from "./_components/flash";
 // --- Shared logic (the "backend" pipeline) -----------------------------------
 import { getAll } from "./_lib/store";
+import type { Item } from "./_lib/types";
 
 // --- Sortable fields for this resource ---------------------------------------
 // Add or remove fields here to control which columns are sortable.
@@ -40,10 +41,7 @@ const SORTABLE_FIELDS = ["name", "description", "status", "createdAt"];
 // --- Searchable fields for this resource -------------------------------------
 // Which fields to search when the user types in the search box.
 // Phoenix equivalent: the fields in your WHERE ilike() clause.
-const SEARCHABLE_FIELDS: (keyof ReturnType<typeof getAll>[number])[] = [
-  "name",
-  "description",
-];
+const SEARCHABLE_FIELDS: (keyof Item)[] = ["name", "description"];
 
 export default async function ItemsPage({
   searchParams,
@@ -54,7 +52,7 @@ export default async function ItemsPage({
   const params = await searchParams;
 
   // --- 1. Get all items from the store (Phoenix: Items.list_items()) ---------
-  const allItems = getAll();
+  const allItems = await getAll();
 
   // --- 2. Filter by search query (Phoenix: WHERE ilike(...)) -----------------
   const query = parseSearchParam(params);

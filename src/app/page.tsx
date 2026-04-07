@@ -12,14 +12,12 @@ import Link from "next/link";
 export default function Home() {
   return (
     <main className="mx-auto max-w-3xl p-8">
-      <h1 className="mb-4 text-3xl font-bold">Welcome to MyApp</h1>
+      <h1 className="mb-4 text-3xl font-bold">CRUD Template for New Apps</h1>
       <p className="mb-8 text-gray-600 dark:text-gray-400">
-        A Next.js CRUD scaffold modeled after Phoenix&apos;s{" "}
-        <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm dark:bg-gray-800">
-          mix phx.gen.html
-        </code>
-        . Each resource has full CRUD with pagination, search, sorting, and
-        per-page controls.
+        Clone this repo when you want a clean Next.js starting point with
+        working CRUD flows, search, sorting, pagination, and form handling
+        already wired up. The example resources are meant to be copied, renamed,
+        and replaced with your own domain models.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -29,7 +27,8 @@ export default function Home() {
         >
           <h2 className="mb-1 text-lg font-semibold">Items &rarr;</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage items with full CRUD, pagination, search, and sorting.
+            Reference scaffold with shared building blocks and detailed guide
+            comments.
           </p>
         </Link>
 
@@ -39,7 +38,8 @@ export default function Home() {
         >
           <h2 className="mb-1 text-lg font-semibold">Products &rarr;</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Manage products with full CRUD, pagination, search, and sorting.
+            A second example showing how the scaffold looks after adapting it to
+            a different resource.
           </p>
         </Link>
       </div>

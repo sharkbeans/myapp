@@ -13,7 +13,7 @@ export default async function ShowProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const product = getById(id);
+  const product = await getById(id);
   if (!product) notFound();
 
   return (

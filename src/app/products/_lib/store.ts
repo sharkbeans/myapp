@@ -1,8 +1,8 @@
 // =============================================================================
 // store.ts — Products data layer (like a Phoenix Context: lib/myapp/products.ex)
 // =============================================================================
-// This is an IN-MEMORY store for prototyping. In production, swap these
-// functions for real database calls (Prisma, Drizzle, etc.).
+// This template prefers Neon/Postgres when DATABASE_URL is configured, while
+// keeping an in-memory fallback so the repo still works before secrets are set.
 //
 // Phoenix equivalent context module:
 //   defmodule Myapp.Products do
@@ -19,6 +19,7 @@
 //   4. Everything else (validation, forms, flash) stays the same
 // =============================================================================
 
+import { getSql, hasDatabaseUrl, query, toIsoString } from "@/lib/neon";
 import type { Product } from "./types";
 
 // --- In-memory store ---------------------------------------------------------
@@ -137,26 +138,117 @@ for (const product of seed) {
   products.set(product.id, product);
 }
 
-let nextId = 16;
+let databaseSetupPromise: Promise<void> | null = null;
 
 // --- CRUD functions ----------------------------------------------------------
 // Each function maps 1:1 to a Phoenix context function.
 
+type ProductRow = {
+  id: string;
+  name: string;
+  description: string;
+  status: Product["status"];
+  created_at: string | Date;
+};
+
+function mapProductRow(row: ProductRow): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    status: row.status,
+    createdAt: toIsoString(row.created_at),
+  };
+}
+
+async function ensureProductsTable(): Promise<void> {
+  if (!hasDatabaseUrl()) return;
+
+  if (!databaseSetupPromise) {
+    databaseSetupPromise = (async () => {
+      const sql = getSql();
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS products (
+          id text PRIMARY KEY,
+          name text NOT NULL,
+          description text NOT NULL DEFAULT '',
+          status text NOT NULL CHECK (status IN ('active', 'inactive')),
+          created_at timestamptz NOT NULL DEFAULT now()
+        )
+      `;
+
+      const result = await query<{ count: number }>`
+        SELECT COUNT(*)::int AS count FROM products
+      `;
+
+      if (result[0]?.count === 0) {
+        for (const product of seed) {
+          await sql`
+            INSERT INTO products (id, name, description, status, created_at)
+            VALUES (${product.id}, ${product.name}, ${product.description}, ${product.status}, ${product.createdAt}::timestamptz)
+          `;
+        }
+      }
+    })();
+  }
+
+  await databaseSetupPromise;
+}
+
 /** List all products. Phoenix: Products.list_products() */
-export function getAll(): Product[] {
+export async function getAll(): Promise<Product[]> {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const rows = await query<ProductRow>`
+      SELECT id, name, description, status, created_at
+      FROM products
+      ORDER BY created_at DESC, id DESC
+    `;
+
+    return rows.map(mapProductRow);
+  }
+
   return Array.from(products.values());
 }
 
 /** Get one product by id. Phoenix: Products.get_product!(id) */
-export function getById(id: string): Product | undefined {
+export async function getById(id: string): Promise<Product | undefined> {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const rows = await query<ProductRow>`
+      SELECT id, name, description, status, created_at
+      FROM products
+      WHERE id = ${id}
+      LIMIT 1
+    `;
+
+    return rows[0] ? mapProductRow(rows[0]) : undefined;
+  }
+
   return products.get(id);
 }
 
 /** Create a new product. Phoenix: Products.create_product(attrs) */
-export function create(data: Omit<Product, "id" | "createdAt">): Product {
+export async function create(
+  data: Omit<Product, "id" | "createdAt">,
+): Promise<Product> {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const id = crypto.randomUUID();
+    const rows = await query<ProductRow>`
+      INSERT INTO products (id, name, description, status)
+      VALUES (${id}, ${data.name}, ${data.description}, ${data.status})
+      RETURNING id, name, description, status, created_at
+    `;
+
+    return mapProductRow(rows[0]);
+  }
+
+  const nextId = String(products.size + 1);
   const product: Product = {
     ...data,
-    id: String(nextId++),
+    id: nextId,
     createdAt: new Date().toISOString(),
   };
   products.set(product.id, product);
@@ -164,10 +256,29 @@ export function create(data: Omit<Product, "id" | "createdAt">): Product {
 }
 
 /** Update an existing product. Phoenix: Products.update_product(product, attrs) */
-export function update(
+export async function update(
   id: string,
   data: Partial<Omit<Product, "id" | "createdAt">>,
-): Product | undefined {
+): Promise<Product | undefined> {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const existing = await getById(id);
+
+    if (!existing) return undefined;
+
+    const rows = await query<ProductRow>`
+      UPDATE products
+      SET
+        name = ${data.name ?? existing.name},
+        description = ${data.description ?? existing.description},
+        status = ${data.status ?? existing.status}
+      WHERE id = ${id}
+      RETURNING id, name, description, status, created_at
+    `;
+
+    return rows[0] ? mapProductRow(rows[0]) : undefined;
+  }
+
   const existing = products.get(id);
   if (!existing) return undefined;
   const updated = { ...existing, ...data };
@@ -176,6 +287,17 @@ export function update(
 }
 
 /** Delete a product. Phoenix: Products.delete_product(product) */
-export function remove(id: string): boolean {
+export async function remove(id: string): Promise<boolean> {
+  if (hasDatabaseUrl()) {
+    await ensureProductsTable();
+    const rows = await query<{ id: string }>`
+      DELETE FROM products
+      WHERE id = ${id}
+      RETURNING id
+    `;
+
+    return rows.length > 0;
+  }
+
   return products.delete(id);
 }

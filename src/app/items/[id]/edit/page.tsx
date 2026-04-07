@@ -16,7 +16,7 @@ export default async function EditItemPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = getById(id);
+  const item = await getById(id);
   if (!item) notFound();
 
   return (

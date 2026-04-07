@@ -1,8 +1,8 @@
 // =============================================================================
 // store.ts — Items data layer (like a Phoenix Context: lib/myapp/items.ex)
 // =============================================================================
-// This is an IN-MEMORY store for prototyping. In production, swap these
-// functions for real database calls (Prisma, Drizzle, etc.).
+// This template prefers Neon/Postgres when DATABASE_URL is configured, while
+// keeping an in-memory fallback so the repo still works before secrets are set.
 //
 // Phoenix equivalent context module:
 //   defmodule Myapp.Items do
@@ -20,6 +20,7 @@
 //   4. Everything else (validation, forms, flash) stays the same
 // =============================================================================
 
+import { getSql, hasDatabaseUrl, query, toIsoString } from "@/lib/neon";
 import type { Item } from "./types";
 
 // --- In-memory store ---------------------------------------------------------
@@ -138,26 +139,117 @@ for (const item of seed) {
   items.set(item.id, item);
 }
 
-let nextId = 16;
+let databaseSetupPromise: Promise<void> | null = null;
 
 // --- CRUD functions ----------------------------------------------------------
 // Each function maps 1:1 to a Phoenix context function.
 
+type ItemRow = {
+  id: string;
+  name: string;
+  description: string;
+  status: Item["status"];
+  created_at: string | Date;
+};
+
+function mapItemRow(row: ItemRow): Item {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    status: row.status,
+    createdAt: toIsoString(row.created_at),
+  };
+}
+
+async function ensureItemsTable(): Promise<void> {
+  if (!hasDatabaseUrl()) return;
+
+  if (!databaseSetupPromise) {
+    databaseSetupPromise = (async () => {
+      const sql = getSql();
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS items (
+          id text PRIMARY KEY,
+          name text NOT NULL,
+          description text NOT NULL DEFAULT '',
+          status text NOT NULL CHECK (status IN ('active', 'inactive')),
+          created_at timestamptz NOT NULL DEFAULT now()
+        )
+      `;
+
+      const result = await query<{ count: number }>`
+        SELECT COUNT(*)::int AS count FROM items
+      `;
+
+      if (result[0]?.count === 0) {
+        for (const item of seed) {
+          await sql`
+            INSERT INTO items (id, name, description, status, created_at)
+            VALUES (${item.id}, ${item.name}, ${item.description}, ${item.status}, ${item.createdAt}::timestamptz)
+          `;
+        }
+      }
+    })();
+  }
+
+  await databaseSetupPromise;
+}
+
 /** List all items. Phoenix: Items.list_items() */
-export function getAll(): Item[] {
+export async function getAll(): Promise<Item[]> {
+  if (hasDatabaseUrl()) {
+    await ensureItemsTable();
+    const rows = await query<ItemRow>`
+      SELECT id, name, description, status, created_at
+      FROM items
+      ORDER BY created_at DESC, id DESC
+    `;
+
+    return rows.map(mapItemRow);
+  }
+
   return Array.from(items.values());
 }
 
 /** Get one item by id. Phoenix: Items.get_item!(id) */
-export function getById(id: string): Item | undefined {
+export async function getById(id: string): Promise<Item | undefined> {
+  if (hasDatabaseUrl()) {
+    await ensureItemsTable();
+    const rows = await query<ItemRow>`
+      SELECT id, name, description, status, created_at
+      FROM items
+      WHERE id = ${id}
+      LIMIT 1
+    `;
+
+    return rows[0] ? mapItemRow(rows[0]) : undefined;
+  }
+
   return items.get(id);
 }
 
 /** Create a new item. Phoenix: Items.create_item(attrs) */
-export function create(data: Omit<Item, "id" | "createdAt">): Item {
+export async function create(
+  data: Omit<Item, "id" | "createdAt">,
+): Promise<Item> {
+  if (hasDatabaseUrl()) {
+    await ensureItemsTable();
+    const id = crypto.randomUUID();
+    const rows = await query<ItemRow>`
+      INSERT INTO items (id, name, description, status)
+      VALUES (${id}, ${data.name}, ${data.description}, ${data.status})
+      RETURNING id, name, description, status, created_at
+    `;
+
+    return mapItemRow(rows[0]);
+  }
+
+  const nextId = String(items.size + 1);
   const item: Item = {
     ...data,
-    id: String(nextId++),
+    id: nextId,
     createdAt: new Date().toISOString(),
   };
   items.set(item.id, item);
@@ -165,10 +257,29 @@ export function create(data: Omit<Item, "id" | "createdAt">): Item {
 }
 
 /** Update an existing item. Phoenix: Items.update_item(item, attrs) */
-export function update(
+export async function update(
   id: string,
   data: Partial<Omit<Item, "id" | "createdAt">>,
-): Item | undefined {
+): Promise<Item | undefined> {
+  if (hasDatabaseUrl()) {
+    await ensureItemsTable();
+    const existing = await getById(id);
+
+    if (!existing) return undefined;
+
+    const rows = await query<ItemRow>`
+      UPDATE items
+      SET
+        name = ${data.name ?? existing.name},
+        description = ${data.description ?? existing.description},
+        status = ${data.status ?? existing.status}
+      WHERE id = ${id}
+      RETURNING id, name, description, status, created_at
+    `;
+
+    return rows[0] ? mapItemRow(rows[0]) : undefined;
+  }
+
   const existing = items.get(id);
   if (!existing) return undefined;
   const updated = { ...existing, ...data };
@@ -177,6 +288,17 @@ export function update(
 }
 
 /** Delete an item. Phoenix: Items.delete_item(item) */
-export function remove(id: string): boolean {
+export async function remove(id: string): Promise<boolean> {
+  if (hasDatabaseUrl()) {
+    await ensureItemsTable();
+    const rows = await query<{ id: string }>`
+      DELETE FROM items
+      WHERE id = ${id}
+      RETURNING id
+    `;
+
+    return rows.length > 0;
+  }
+
   return items.delete(id);
 }
